@@ -23,9 +23,16 @@ jobs:
             # 최신 코드 받기
             git pull origin main
             
-            # 의존성 설치 및 빌드
+            # 의존성 설치
+            cd /var/www/audit/web
             npm install
+            
+            # Prisma 마이그레이션 및 클라이언트 생성
+            npx prisma generate
+            npx prisma migrate deploy
+            
+            # 빌드
             npm run build
             
             # 앱 재시작 (없으면 시작)
-            pm2 reload audit-app || pm2 start npm --name "audit-app" -- start
+            pm2 reload audit-app || pm2 start npm --name "audit-app" --cwd /var/www/audit/web -- start
