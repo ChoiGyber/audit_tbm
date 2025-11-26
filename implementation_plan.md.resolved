@@ -1,0 +1,58 @@
+# 안전보건관리체계 평가 시스템 구현 계획
+
+## 목표 (Goal)
+기업의 안전보건관리체계 구축 및 이행 현황을 평가하고, AI를 활용하여 증빙 자료 분석 및 보고서 작성을 자동화하는 웹 기반 시스템을 구축합니다.
+
+## 사용자 검토 필요 사항 (User Review Required)
+> [!IMPORTANT]
+> **AI 모델 선정**: Google Gemini API를 기본으로 사용할 예정이나, 비용 및 성능 이슈에 따라 GPT 등으로 변경 가능하도록 설정 기능을 제공해야 합니다.
+> **평가표 기준**: 평가 항목 및 배점 기준 데이터는 DB에 유동적으로 저장할지, 하드코딩할지 결정이 필요합니다. (초기에는 유연성을 위해 DB 관리를 권장합니다.)
+
+## 제안된 변경 사항 (Proposed Changes)
+
+### 1. 기술 스택 (Tech Stack)
+- **Frontend**: Next.js (App Router), React, Tailwind CSS
+- **Backend**: Next.js API Routes, Supabase (PostgreSQL, Auth, Storage)
+- **AI**: Google Gemini API (via LangChain or direct SDK)
+- **PDF**: `react-pdf` or `jspdf` for report generation
+- **Charts**: `recharts` or `chart.js`
+
+### 2. 데이터베이스 구조 (Database Schema)
+#### [NEW] Supabase Tables
+- `users`: 사용자 정보 및 역할 (admin/user)
+- `clients`: 평가 대상 업체 정보
+- `assessments`: 평가 마스터 정보 (날짜, 총점, 총평 등)
+- `assessment_details`: 평가 상세 항목 (항목 ID, 점수, 코멘트, 파일 URL)
+- `ai_settings`: AI 모델 및 프롬프트 설정
+- `report_templates`: 보고서 디자인 설정
+
+### 3. 주요 기능 구현 (Key Features)
+
+#### [NEW] 인증 및 사용자 관리 (Auth & User Mgmt)
+- Supabase Auth를 이용한 이메일/비밀번호 로그인
+- Middleware를 이용한 페이지별 접근 권한 제어 (Admin vs User)
+
+#### [NEW] 평가 시스템 (Assessment System)
+- **평가표 UI**: 아코디언 또는 탭 형태로 항목별 접근성 강화
+- **파일 업로드**: Supabase Storage 연동, Drag & Drop 지원
+- **점수 계산**: 항목별 입력 시 실시간 총점 계산
+
+#### [NEW] AI 연동 (AI Integration)
+- **이미지/PDF 분석**: 업로드된 파일을 텍스트로 변환(OCR 등) 후 LLM에 전송하여 적정성 판단
+- **자동 코멘트**: 분석 결과를 바탕으로 "양호", "미흡" 등의 의견 생성
+- **총평 작성**: 전체 평가 데이터를 요약하여 종합 의견 초안 생성
+
+#### [NEW] 보고서 및 시각화 (Reporting & Viz)
+- **차트**: Recharts를 사용하여 방사형(Radar) 그래프 등으로 항목별 점수 분포 시각화
+- **PDF 다운로드**: 평가 결과 및 차트를 포함한 깔끔한 보고서 생성
+
+## 검증 계획 (Verification Plan)
+
+### 자동화 테스트 (Automated Tests)
+- 주요 API 엔드포인트(평가 저장, AI 분석 요청)에 대한 Unit Test
+- 로그인 및 평가 프로세스에 대한 E2E Test (Playwright 권장)
+
+### 수동 검증 (Manual Verification)
+- **평가 흐름**: 업체 선택 -> 평가 입력 -> 저장 -> 조회 흐름 확인
+- **AI 동작**: 이미지 업로드 시 분석 결과가 올바르게 나오는지 확인
+- **권한**: 일반 사용자가 관리자 메뉴에 접근 불가능한지 확인
