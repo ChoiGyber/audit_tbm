@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -13,11 +10,120 @@ datasource db {
   provider = "postgresql"
 }
 
-// Example model - modify according to your needs
+// User model with authentication
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String    // bcrypt hashed
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  sessions      Session[]
+  assessments   Assessment[]
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// Session model for NextAuth.js
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// Verification tokens for email verification (optional)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Client (평가 대상 업체)
+model Client {
+  id              String       @id @default(cuid())
+  name            String
+  businessNumber  String?      @unique // 사업자등록번호
+  representative  String?      // 대표자명
+  address         String?
+  phone           String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  assessments     Assessment[]
+}
+
+// Assessment (평가 마스터)
+model Assessment {
+  id              String             @id @default(cuid())
+  clientId        String
+  userId          String
+  assessmentDate  DateTime           @default(now())
+  totalScore      Float?
+  overallComment  String?            @db.Text
+  status          AssessmentStatus   @default(IN_PROGRESS)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  
+  client          Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user            User               @relation(fields: [userId], references: [id])
+  details         AssessmentDetail[]
+  
+  @@index([clientId])
+  @@index([userId])
+}
+
+enum AssessmentStatus {
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+// Assessment Detail (평가 상세 항목)
+model AssessmentDetail {
+  id             String     @id @default(cuid())
+  assessmentId   String
+  category       String     // 평가 카테고리
+  itemName       String     // 평가 항목명
+  score          Float?
+  maxScore       Float
+  comment        String?    @db.Text
+  evidenceUrls   String[]   // 증빙 파일 URL 배열
+  aiAnalysis     String?    @db.Text
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  
+  assessment     Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  
+  @@index([assessmentId])
+}
+
+// AI Settings
+model AiSetting {
+  id          String   @id @default(cuid())
+  modelName   String   @default("gemini-pro")
+  apiKey      String?
+  prompt      String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Report Templates
+model ReportTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  content     String   @db.Text
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

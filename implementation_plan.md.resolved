@@ -12,13 +12,13 @@
 
 ### 1. 기술 스택 (Tech Stack)
 - **Frontend**: Next.js (App Router), React, Tailwind CSS
-- **Backend**: Next.js API Routes, Supabase (PostgreSQL, Auth, Storage)
+- **Backend**: Next.js API Routes, PostgreSQL (서버 DB), NextAuth.js (Auth)
 - **AI**: Google Gemini API (via LangChain or direct SDK)
 - **PDF**: `react-pdf` or `jspdf` for report generation
 - **Charts**: `recharts` or `chart.js`
 
 ### 2. 데이터베이스 구조 (Database Schema)
-#### [NEW] Supabase Tables
+#### [NEW] PostgreSQL Tables (Prisma)
 - `users`: 사용자 정보 및 역할 (admin/user)
 - `clients`: 평가 대상 업체 정보
 - `assessments`: 평가 마스터 정보 (날짜, 총점, 총평 등)
@@ -29,12 +29,13 @@
 ### 3. 주요 기능 구현 (Key Features)
 
 #### [NEW] 인증 및 사용자 관리 (Auth & User Mgmt)
-- Supabase Auth를 이용한 이메일/비밀번호 로그인
+- NextAuth.js를 이용한 이메일/비밀번호 로그인
+- bcrypt를 사용한 비밀번호 암호화
 - Middleware를 이용한 페이지별 접근 권한 제어 (Admin vs User)
 
 #### [NEW] 평가 시스템 (Assessment System)
 - **평가표 UI**: 아코디언 또는 탭 형태로 항목별 접근성 강화
-- **파일 업로드**: Supabase Storage 연동, Drag & Drop 지원
+- **파일 업로드**: 로컬 파일 시스템 또는 클라우드 스토리지 연동, Drag & Drop 지원
 - **점수 계산**: 항목별 입력 시 실시간 총점 계산
 
 #### [NEW] AI 연동 (AI Integration)
